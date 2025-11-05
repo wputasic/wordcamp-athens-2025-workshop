@@ -1,0 +1,61 @@
+# WordCamp Notes Greek Translation
+# Copyright (C) 2025 WordCamp Athens Workshop
+# This file is distributed under the same license as the WordCamp Notes plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: WordCamp Notes 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/yourusername/wordcamp-athens-2025-workshop\n"
+"POT-Creation-Date: 2025-01-01 12:00+0000\n"
+"PO-Revision-Date: 2025-01-01 12:00+0000\n"
+"Last-Translator: WordCamp Athens 2025\n"
+"Language-Team: Greek\n"
+"Language: el_GR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: plugin.php:42
+msgid "WordCamp Notes"
+msgstr "Σημειώσεις WordCamp"
+
+#: plugin.php:43
+msgid "Note"
+msgstr "Σημείωση"
+
+#: plugin.php:44
+msgid "Add New"
+msgstr "Προσθήκη Νέας"
+
+#: plugin.php:45
+msgid "Add New Note"
+msgstr "Προσθήκη Νέας Σημειώσης"
+
+#: plugin.php:46
+msgid "New Note"
+msgstr "Νέα Σημείωση"
+
+#: plugin.php:47
+msgid "Edit Note"
+msgstr "Επεξεργασία Σημειώσης"
+
+#: plugin.php:48
+msgid "View Note"
+msgstr "Προβολή Σημειώσης"
+
+#: plugin.php:49
+msgid "All Notes"
+msgstr "Όλες οι Σημειώσεις"
+
+#: plugin.php:50
+msgid "Search Notes"
+msgstr "Αναζήτηση Σημειώσεων"
+
+#: plugin.php:51
+msgid "No notes found."
+msgstr "Δεν βρέθηκαν σημειώσεις."
+
+#: plugin.php:52
+msgid "No notes found in Trash."
+msgstr "Δεν βρέθηκαν σημειώσεις στον Κάδο."
+

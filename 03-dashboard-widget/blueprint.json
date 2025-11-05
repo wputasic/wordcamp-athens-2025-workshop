@@ -1,0 +1,25 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/wp-admin/",
+  "preferredVersions": {
+    "php": "8.0",
+    "wp": "latest"
+  },
+  "steps": [
+    {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/plugin.php",
+      "data": "<?php\n/**\n * Plugin Name: WordCamp Notes\n * Plugin URI: https://github.com/yourusername/wordcamp-athens-2025-workshop\n * Description: Take and organize notes during WordCamp sessions. A practical plugin for conference attendees.\n * Version: 1.0.0\n * Author: WordCamp Athens 2025 Workshop\n * Author URI: https://athens.wordcamp.org/2025\n * License: GPL-2.0+\n * License URI: http://www.gnu.org/licenses/gpl-2.0.txt\n * Text Domain: wc-notes\n * Domain Path: /languages\n */\n\n// Exit if accessed directly\nif (!defined('ABSPATH')) {\n    exit;\n}\n\nfunction wc_notes_load_textdomain() {\n    load_plugin_textdomain(\n        'wc-notes',\n        false,\n        dirname(plugin_basename(__FILE__)) . '/languages'\n    );\n}\nadd_action('plugins_loaded', 'wc_notes_load_textdomain');\n\nfunction wc_notes_register_post_type() {\n    $labels = array(\n        'name'                  => _x('WordCamp Notes', 'Post type general name', 'wc-notes'),\n        'singular_name'         => _x('Note', 'Post type singular name', 'wc-notes'),\n        'menu_name'             => _x('WordCamp Notes', 'Admin Menu text', 'wc-notes'),\n        'add_new_item'          => __('Add New Note', 'wc-notes'),\n        'all_items'             => __('All Notes', 'wc-notes'),\n    );\n\n    $args = array(\n        'labels'             => $labels,\n        'public'             => true,\n        'show_ui'            => true,\n        'show_in_menu'       => true,\n        'menu_icon'          => 'dashicons-edit',\n        'supports'           => array('title', 'editor', 'custom-fields'),\n    );\n\n    register_post_type('wc_note', $args);\n}\nadd_action('init', 'wc_notes_register_post_type');\n\nfunction wc_notes_dashboard_widget() {\n    wp_add_dashboard_widget(\n        'wc_notes_dashboard',\n        __('WordCamp Notes Summary', 'wc-notes'),\n        'wc_notes_dashboard_widget_content'\n    );\n}\nadd_action('wp_dashboard_setup', 'wc_notes_dashboard_widget');\n\nfunction wc_notes_dashboard_widget_content() {\n    $counts = wp_count_posts('wc_note');\n    $total_notes = isset($counts->publish) ? $counts->publish : 0;\n    $today_notes = wc_notes_get_today_count();\n    \n    echo '<div class=\"wc-notes-dashboard-stats\">';\n    echo '<p><strong>' . sprintf(__('Total Notes: %d', 'wc-notes'), $total_notes) . '</strong></p>';\n    echo '<p>' . sprintf(__('Notes from today: %d', 'wc-notes'), $today_notes) . '</p>';\n    echo '</div>';\n    \n    $recent_notes = get_posts(array(\n        'post_type' => 'wc_note',\n        'posts_per_page' => 3,\n        'orderby' => 'date',\n        'order' => 'DESC',\n    ));\n    \n    if (!empty($recent_notes)) {\n        echo '<h4>' . __('Recent Notes', 'wc-notes') . '</h4>';\n        echo '<ul>';\n        foreach ($recent_notes as $note) {\n            echo '<li><a href=\"' . get_edit_post_link($note->ID) . '\">' . esc_html($note->post_title) . '</a></li>';\n        }\n        echo '</ul>';\n    }\n    \n    echo '<p><a href=\"' . admin_url('post-new.php?post_type=wc_note') . '\" class=\"button button-primary\">' . __('Add New Note', 'wc-notes') . '</a></p>';\n}\n\nfunction wc_notes_get_today_count() {\n    $today = getdate();\n    $args = array(\n        'post_type' => 'wc_note',\n        'posts_per_page' => -1,\n        'date_query' => array(array(\n            'year'  => $today['year'],\n            'month' => $today['mon'],\n            'day'   => $today['mday'],\n        )),\n    );\n    $query = new WP_Query($args);\n    return $query->found_posts;\n}\n"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php\nrequire_once ABSPATH . 'wp-admin/includes/plugin.php';\nactivate_plugin('wc-notes/plugin.php');\n"
+    }
+  ]
+}
+

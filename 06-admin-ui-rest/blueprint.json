@@ -1,0 +1,45 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/wp-admin/admin.php?page=wc-notes-manage",
+  "preferredVersions": {
+    "php": "8.0",
+    "wp": "latest"
+  },
+  "steps": [
+    {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/plugin.php",
+      "data": "<?php\nif (!defined('ABSPATH')) exit;\nrequire_once plugin_dir_path(__FILE__) . 'admin/admin-menu.php';\nrequire_once plugin_dir_path(__FILE__) . 'admin/admin-page.php';\n\nfunction wc_notes_register_post_type() {\n    register_post_type('wc_note', array('public' => true, 'show_ui' => true, 'show_in_menu' => true, 'supports' => array('title', 'editor')));\n}\nadd_action('init', 'wc_notes_register_post_type');\n\nfunction wc_notes_register_rest_routes() {\n    register_rest_route('wc-notes/v1', '/notes', array('methods' => 'GET', 'callback' => 'wc_notes_get_notes', 'permission_callback' => '__return_true'));\n    register_rest_route('wc-notes/v1', '/notes', array('methods' => 'POST', 'callback' => 'wc_notes_create_note', 'permission_callback' => function() { return current_user_can('edit_posts'); }));\n}\nadd_action('rest_api_init', 'wc_notes_register_rest_routes');\n\nfunction wc_notes_get_notes($request) {\n    $query = new WP_Query(array('post_type' => 'wc_note', 'posts_per_page' => -1));\n    return rest_ensure_response(array_map(function($post) { return array('id' => $post->ID, 'title' => $post->post_title, 'content' => $post->post_content); }, $query->posts));\n}\n\nfunction wc_notes_create_note($request) {\n    $post_id = wp_insert_post(array('post_type' => 'wc_note', 'post_title' => $request->get_param('title'), 'post_content' => $request->get_param('content'), 'post_status' => 'publish'));\n    $post = get_post($post_id);\n    return rest_ensure_response(array('id' => $post->ID, 'title' => $post->post_title, 'content' => $post->post_content));\n}\n\nfunction wc_notes_enqueue_admin_assets($hook) {\n    if ('toplevel_page_wc-notes-manage' !== $hook) return;\n    wp_enqueue_style('wc-notes-admin', plugin_dir_url(__FILE__) . 'assets/admin.css', array(), '1.0.0');\n    wp_enqueue_script('wc-notes-admin', plugin_dir_url(__FILE__) . 'assets/admin.js', array('jquery'), '1.0.0', true);\n    wp_localize_script('wc-notes-admin', 'wcNotesData', array('restUrl' => rest_url('wc-notes/v1/'), 'nonce' => wp_create_nonce('wp_rest')));\n}\nadd_action('admin_enqueue_scripts', 'wc_notes_enqueue_admin_assets');\n"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/admin/admin-menu.php",
+      "data": "<?php\nfunction wc_notes_add_admin_menu() {\n    add_menu_page('WordCamp Notes', 'WordCamp Notes', 'edit_posts', 'wc-notes-manage', 'wc_notes_admin_page', 'dashicons-edit', 30);\n}\nadd_action('admin_menu', 'wc_notes_add_admin_menu');\n"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/admin/admin-page.php",
+      "data": "<?php\nfunction wc_notes_admin_page() {\n    echo '<div class=\"wrap\"><h1>WordCamp Notes Manager</h1><div id=\"wc-notes-app\"><div class=\"wc-notes-header\"><button id=\"add-note-btn\" class=\"button button-primary\">Add New Note</button></div><div id=\"notes-list\"><p class=\"loading\">Loading notes...</p></div></div></div>';\n}\n"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/assets/admin.js",
+      "data": "jQuery(document).ready(function($) {\n    async function loadNotes() {\n        try {\n            const response = await fetch(wcNotesData.restUrl + 'notes');\n            const notes = await response.json();\n            const list = $('#notes-list');\n            list.empty();\n            notes.forEach(note => {\n                list.append('<div class=\"wc-note-item\"><h3>' + note.title + '</h3><p>' + note.content + '</p></div>');\n            });\n        } catch (error) {\n            console.error('Error:', error);\n        }\n    }\n    loadNotes();\n});\n"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/assets/admin.css",
+      "data": ".wc-note-item { background: #fff; border: 1px solid #ccd0d4; padding: 15px; margin-bottom: 15px; }\n"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php\nrequire_once ABSPATH . 'wp-admin/includes/plugin.php';\nactivate_plugin('wc-notes/plugin.php');\n"
+    }
+  ]
+}
+

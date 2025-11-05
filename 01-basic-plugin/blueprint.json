@@ -1,0 +1,32 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/wp-admin/edit.php?post_type=wc_note",
+  "preferredVersions": {
+    "php": "8.0",
+    "wp": "latest"
+  },
+  "steps": [
+    {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/plugin.php",
+      "data": "<?php\n/**\n * Plugin Name: WordCamp Notes\n * Plugin URI: https://github.com/yourusername/wordcamp-athens-2025-workshop\n * Description: Take and organize notes during WordCamp sessions. A practical plugin for conference attendees.\n * Version: 1.0.0\n * Author: WordCamp Athens 2025 Workshop\n * Author URI: https://athens.wordcamp.org/2025\n * License: GPL-2.0+\n * License URI: http://www.gnu.org/licenses/gpl-2.0.txt\n * Text Domain: wc-notes\n * Domain Path: /languages\n */\n\n// Exit if accessed directly\nif (!defined('ABSPATH')) {\n    exit;\n}\n\n/**\n * Register WordCamp Notes Custom Post Type\n */\nfunction wc_notes_register_post_type() {\n    $labels = array(\n        'name'                  => _x('WordCamp Notes', 'Post type general name', 'wc-notes'),\n        'singular_name'         => _x('Note', 'Post type singular name', 'wc-notes'),\n        'menu_name'             => _x('WordCamp Notes', 'Admin Menu text', 'wc-notes'),\n        'name_admin_bar'        => _x('Note', 'Add New on Toolbar', 'wc-notes'),\n        'add_new'               => __('Add New', 'wc-notes'),\n        'add_new_item'          => __('Add New Note', 'wc-notes'),\n        'new_item'              => __('New Note', 'wc-notes'),\n        'edit_item'             => __('Edit Note', 'wc-notes'),\n        'view_item'             => __('View Note', 'wc-notes'),\n        'all_items'             => __('All Notes', 'wc-notes'),\n        'search_items'          => __('Search Notes', 'wc-notes'),\n        'not_found'             => __('No notes found.', 'wc-notes'),\n        'not_found_in_trash'    => __('No notes found in Trash.', 'wc-notes'),\n    );\n\n    $args = array(\n        'labels'             => $labels,\n        'public'             => true,\n        'publicly_queryable' => true,\n        'show_ui'            => true,\n        'show_in_menu'       => true,\n        'query_var'          => true,\n        'rewrite'            => array('slug' => 'wc-note'),\n        'capability_type'    => 'post',\n        'has_archive'        => true,\n        'hierarchical'       => false,\n        'menu_position'      => null,\n        'menu_icon'          => 'dashicons-edit',\n        'supports'           => array('title', 'editor', 'custom-fields', 'author', 'thumbnail'),\n        'show_in_rest'       => false,\n    );\n\n    register_post_type('wc_note', $args);\n}\nadd_action('init', 'wc_notes_register_post_type');\n\n/**\n * Flush rewrite rules on activation\n */\nfunction wc_notes_activate() {\n    wc_notes_register_post_type();\n    flush_rewrite_rules();\n}\nregister_activation_hook(__FILE__, 'wc_notes_activate');\n\n/**\n * Flush rewrite rules on deactivation\n */\nfunction wc_notes_deactivate() {\n    flush_rewrite_rules();\n}\nregister_deactivation_hook(__FILE__, 'wc_notes_deactivate');\n"
+    },
+    {
+      "step": "installPlugin",
+      "pluginZipFile": {
+        "resource": "wordpress.org/plugins",
+        "slug": "query-monitor"
+      }
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php\nrequire_once ABSPATH . 'wp-admin/includes/plugin.php';\nactivate_plugin('wc-notes/plugin.php');\n"
+    }
+  ]
+}
+

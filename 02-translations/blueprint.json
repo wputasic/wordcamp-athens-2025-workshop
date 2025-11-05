@@ -1,0 +1,36 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/wp-admin/edit.php?post_type=wc_note",
+  "preferredVersions": {
+    "php": "8.0",
+    "wp": "latest"
+  },
+  "steps": [
+    {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
+      "step": "setSiteOptions",
+      "options": {
+        "WPLANG": "el_GR"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/plugin.php",
+      "data": "<?php\nif (!defined('ABSPATH')) exit;\n\nfunction wc_notes_load_textdomain() {\n    load_plugin_textdomain('wc-notes', false, dirname(plugin_basename(__FILE__)) . '/languages');\n}\nadd_action('plugins_loaded', 'wc_notes_load_textdomain');\n\nfunction wc_notes_register_post_type() {\n    $labels = array(\n        'name' => _x('WordCamp Notes', 'Post type general name', 'wc-notes'),\n        'singular_name' => _x('Note', 'Post type singular name', 'wc-notes'),\n        'menu_name' => _x('WordCamp Notes', 'Admin Menu text', 'wc-notes'),\n        'add_new_item' => __('Add New Note', 'wc-notes'),\n        'all_items' => __('All Notes', 'wc-notes'),\n    );\n    register_post_type('wc_note', array(\n        'labels' => $labels,\n        'public' => true,\n        'show_ui' => true,\n        'show_in_menu' => true,\n        'menu_icon' => 'dashicons-edit',\n        'supports' => array('title', 'editor'),\n    ));\n}\nadd_action('init', 'wc_notes_register_post_type');\n"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/languages/wc-notes-el_GR.po",
+      "data": "msgid \"\"\nmsgstr \"\"\n\"Project-Id-Version: WordCamp Notes 1.0.0\\n\"\n\"Language: el_GR\\n\"\n\"MIME-Version: 1.0\\n\"\n\"Content-Type: text/plain; charset=UTF-8\\n\"\n\nmsgid \"WordCamp Notes\"\nmsgstr \"Σημειώσεις WordCamp\"\n\nmsgid \"Add New Note\"\nmsgstr \"Προσθήκη Νέας Σημειώσης\"\n\nmsgid \"All Notes\"\nmsgstr \"Όλες οι Σημειώσεις\"\n"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php\nrequire_once ABSPATH . 'wp-admin/includes/plugin.php';\nactivate_plugin('wc-notes/plugin.php');\n"
+    }
+  ]
+}
+

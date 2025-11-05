@@ -1,0 +1,25 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/wp-admin/",
+  "preferredVersions": {
+    "php": "8.0",
+    "wp": "latest"
+  },
+  "steps": [
+    {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/plugin.php",
+      "data": "<?php\nif (!defined('ABSPATH')) exit;\n\nfunction wc_notes_register_cpt() {\n    register_post_type('wc_note', array(\n        'public' => true,\n        'show_ui' => true,\n        'show_in_rest' => true,\n        'rest_base' => 'wc-note',\n        'supports' => array('title', 'editor', 'custom-fields'),\n    ));\n    register_taxonomy('session_track', 'wc_note', array(\n        'public' => true,\n        'show_in_rest' => true,\n        'rest_base' => 'session-track',\n    ));\n}\nadd_action('init', 'wc_notes_register_cpt');\n\nregister_post_meta('wc_note', 'speaker_name', array('show_in_rest' => true, 'single' => true, 'type' => 'string'));\nregister_post_meta('wc_note', 'session_time', array('show_in_rest' => true, 'single' => true, 'type' => 'string'));\n"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php\nrequire_once ABSPATH . 'wp-admin/includes/plugin.php';\nactivate_plugin('wc-notes/plugin.php');\n"
+    }
+  ]
+}
+

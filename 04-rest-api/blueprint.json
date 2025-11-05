@@ -1,0 +1,25 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/wp-admin/",
+  "preferredVersions": {
+    "php": "8.0",
+    "wp": "latest"
+  },
+  "steps": [
+    {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/plugins/wc-notes/plugin.php",
+      "data": "<?php\nif (!defined('ABSPATH')) exit;\n\nfunction wc_notes_register_post_type() {\n    register_post_type('wc_note', array(\n        'public' => true,\n        'show_ui' => true,\n        'show_in_menu' => true,\n        'menu_icon' => 'dashicons-edit',\n        'supports' => array('title', 'editor', 'custom-fields'),\n    ));\n}\nadd_action('init', 'wc_notes_register_post_type');\n\nfunction wc_notes_register_rest_routes() {\n    register_rest_route('wc-notes/v1', '/notes', array(\n        'methods' => 'GET',\n        'callback' => 'wc_notes_get_notes',\n        'permission_callback' => '__return_true',\n    ));\n    register_rest_route('wc-notes/v1', '/notes', array(\n        'methods' => 'POST',\n        'callback' => 'wc_notes_create_note',\n        'permission_callback' => function() { return current_user_can('edit_posts'); },\n    ));\n}\nadd_action('rest_api_init', 'wc_notes_register_rest_routes');\n\nfunction wc_notes_get_notes($request) {\n    $query = new WP_Query(array('post_type' => 'wc_note', 'posts_per_page' => -1));\n    $notes = array();\n    foreach ($query->posts as $post) {\n        $notes[] = array('id' => $post->ID, 'title' => $post->post_title, 'content' => $post->post_content);\n    }\n    return rest_ensure_response($notes);\n}\n\nfunction wc_notes_create_note($request) {\n    $post_id = wp_insert_post(array(\n        'post_type' => 'wc_note',\n        'post_title' => $request->get_param('title'),\n        'post_content' => $request->get_param('content'),\n        'post_status' => 'publish',\n    ));\n    $post = get_post($post_id);\n    return rest_ensure_response(array('id' => $post->ID, 'title' => $post->post_title));\n}\n"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php\nrequire_once ABSPATH . 'wp-admin/includes/plugin.php';\nactivate_plugin('wc-notes/plugin.php');\n"
+    }
+  ]
+}
+
