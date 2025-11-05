@@ -2,7 +2,7 @@
 
 **Mastering WordPress Playground: Elevate Your Plugin and Theme Release Process**
 
-This repository contains all examples for the "Mastering WordPress Playground" workshop at WordCamp Europe in Athens, 2025.
+This repository contains all examples for the "Mastering WordPress Playground" workshop at WordCamp Athens, 2025.
 
 ## 🎯 Workshop Goal
 
