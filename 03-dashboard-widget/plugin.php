@@ -1,13 +1,15 @@
 <?php
 /**
- * Plugin Name: WordCamp Notes
+ * Plugin Name: Workshop WordCamp Athens 2025
  * Plugin URI: https://github.com/yourusername/wordcamp-athens-2025-workshop
- * Description: Take and organize notes during WordCamp sessions. A practical plugin for conference attendees.
- * Version: 1.0.0
- * Author: WordCamp Athens 2025 Workshop
+ * Description: Example of a Dashboard widget
+ * Version: 0.0.1
+ * Requires at least: 6.5
+ * Requires PHP: 7.4
+ * Author: Uros Tasic
  * Author URI: https://athens.wordcamp.org/2025
- * License: GPL-2.0+
- * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wc-notes
  * Domain Path: /languages
  */
@@ -30,150 +32,60 @@ function wc_notes_load_textdomain() {
 add_action('plugins_loaded', 'wc_notes_load_textdomain');
 
 /**
- * Register WordCamp Notes Custom Post Type
+ * Add a widget to the dashboard.
+ *
+ * This function is hooked into the 'wp_dashboard_setup' action below.
  */
-function wc_notes_register_post_type() {
-    $labels = array(
-        'name'                  => _x('WordCamp Notes', 'Post type general name', 'wc-notes'),
-        'singular_name'         => _x('Note', 'Post type singular name', 'wc-notes'),
-        'menu_name'             => _x('WordCamp Notes', 'Admin Menu text', 'wc-notes'),
-        'name_admin_bar'        => _x('Note', 'Add New on Toolbar', 'wc-notes'),
-        'add_new'               => __('Add New', 'wc-notes'),
-        'add_new_item'          => __('Add New Note', 'wc-notes'),
-        'new_item'              => __('New Note', 'wc-notes'),
-        'edit_item'             => __('Edit Note', 'wc-notes'),
-        'view_item'             => __('View Note', 'wc-notes'),
-        'all_items'             => __('All Notes', 'wc-notes'),
-        'search_items'          => __('Search Notes', 'wc-notes'),
-        'not_found'             => __('No notes found.', 'wc-notes'),
-        'not_found_in_trash'    => __('No notes found in Trash.', 'wc-notes'),
-    );
-
-    $args = array(
-        'labels'             => $labels,
-        'public'             => true,
-        'publicly_queryable' => true,
-        'show_ui'            => true,
-        'show_in_menu'       => true,
-        'query_var'          => true,
-        'rewrite'            => array('slug' => 'wc-note'),
-        'capability_type'    => 'post',
-        'has_archive'        => true,
-        'hierarchical'       => false,
-        'menu_position'      => null,
-        'menu_icon'          => 'dashicons-edit',
-        'supports'           => array('title', 'editor', 'custom-fields', 'author', 'thumbnail'),
-        'show_in_rest'       => false,
-    );
-
-    register_post_type('wc_note', $args);
+function wc_notes_add_dashboard_widgets() {
+	wp_add_dashboard_widget(
+		'wc_notes_dashboard_widget',                          // Widget slug.
+		esc_html__( 'Welcome to Playground!', 'wc-notes' ), // Title.
+		'wc_notes_dashboard_widget_render'                    // Display function.
+	); 
+    // Globalize the metaboxes array, this holds all the widgets for wp-admin.
+	global $wp_meta_boxes;
+	
+	// Get the regular dashboard widgets array 
+	// (which already has our new widget but appended at the end).
+	$default_dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
+	
+	// Backup and delete our new dashboard widget from the end of the array.
+	$wc_notes_dashboard_backup = array( 'wc_notes_dashboard_widget' => $default_dashboard['wc_notes_dashboard_widget'] );
+	unset( $default_dashboard['wc_notes_dashboard_widget'] );
+ 
+	// Merge the two arrays together so our widget is at the beginning.
+	$sorted_dashboard = array_merge( $wc_notes_dashboard_backup, $default_dashboard );
+ 
+	// Save the sorted array back into the original metaboxes. 
+	$wp_meta_boxes['dashboard']['normal']['core'] = $sorted_dashboard;
 }
-add_action('init', 'wc_notes_register_post_type');
+add_action( 'wp_dashboard_setup', 'wc_notes_add_dashboard_widgets' );
 
 /**
- * Add dashboard widget
+ * Create the function to output the content of our Dashboard Widget.
  */
-function wc_notes_dashboard_widget() {
-    wp_add_dashboard_widget(
-        'wc_notes_dashboard',
-        __('WordCamp Notes Summary', 'wc-notes'),
-        'wc_notes_dashboard_widget_content'
-    );
-}
-add_action('wp_dashboard_setup', 'wc_notes_dashboard_widget');
+function wc_notes_dashboard_widget_render() {
+    $user_id = get_current_user_id();
+    $meta_key = 'wc_notes_dashboard_note';
+    $message = '';
 
-/**
- * Dashboard widget content
- */
-function wc_notes_dashboard_widget_content() {
-    // Get note counts
-    $counts = wp_count_posts('wc_note');
-    $total_notes = isset($counts->publish) ? $counts->publish : 0;
-    
-    // Get today's notes count
-    $today_notes = wc_notes_get_today_count();
-    
-    // Display statistics
-    echo '<div class="wc-notes-dashboard-stats">';
-    echo '<p><strong>' . sprintf(
-        __('Total Notes: %d', 'wc-notes'),
-        $total_notes
-    ) . '</strong></p>';
-    
-    echo '<p>' . sprintf(
-        __('Notes from today: %d', 'wc-notes'),
-        $today_notes
-    ) . '</p>';
-    echo '</div>';
-    
-    // Get recent notes
-    $recent_notes = get_posts(array(
-        'post_type' => 'wc_note',
-        'posts_per_page' => 3,
-        'orderby' => 'date',
-        'order' => 'DESC',
-    ));
-    
-    if (!empty($recent_notes)) {
-        echo '<h4>' . __('Recent Notes', 'wc-notes') . '</h4>';
-        echo '<ul>';
-        foreach ($recent_notes as $note) {
-            echo '<li>';
-            echo '<a href="' . get_edit_post_link($note->ID) . '">';
-            echo esc_html($note->post_title);
-            echo '</a>';
-            echo ' <span class="description">(' . human_time_diff(get_the_time('U', $note->ID), current_time('timestamp')) . ' ' . __('ago', 'wc-notes') . ')</span>';
-            echo '</li>';
+    // Handle form submission
+    if ( isset($_POST['wc_notes_note_nonce']) && wp_verify_nonce($_POST['wc_notes_note_nonce'], 'wc_notes_save_note') ) {
+        if ( isset($_POST['wc_notes_note']) ) {
+            $note = sanitize_textarea_field($_POST['wc_notes_note']);
+            update_user_meta($user_id, $meta_key, $note);
+            $message = '<div style="color:green;">' . esc_html__( 'Note saved!', 'wc-notes' ) . '</div>';
         }
-        echo '</ul>';
     }
-    
-    // Quick action button
-    echo '<p>';
-    echo '<a href="' . admin_url('post-new.php?post_type=wc_note') . '" class="button button-primary">';
-    echo __('Add New Note', 'wc-notes');
-    echo '</a>';
-    echo ' <a href="' . admin_url('edit.php?post_type=wc_note') . '" class="button">';
-    echo __('View All Notes', 'wc-notes');
-    echo '</a>';
-    echo '</p>';
-}
 
-/**
- * Get today's notes count
- */
-function wc_notes_get_today_count() {
-    $today = getdate();
-    $args = array(
-        'post_type' => 'wc_note',
-        'posts_per_page' => -1,
-        'date_query' => array(
-            array(
-                'year'  => $today['year'],
-                'month' => $today['mon'],
-                'day'   => $today['mday'],
-            ),
-        ),
-    );
-    
-    $query = new WP_Query($args);
-    return $query->found_posts;
+    $note = get_user_meta($user_id, $meta_key, true);
+    ?>
+    <?php echo $message; ?>
+    <form method="post">
+        <label for="wc_notes_note"><?php esc_html_e( 'Quick Note (only you can see this):', 'wc-notes' ); ?></label><br>
+        <textarea name="wc_notes_note" id="wc_notes_note" rows="3" cols="40"><?php echo esc_textarea($note); ?></textarea><br>
+        <?php wp_nonce_field('wc_notes_save_note', 'wc_notes_note_nonce'); ?>
+        <input type="submit" value="<?php esc_attr_e( 'Save Note', 'wc-notes' ); ?>" class="button button-primary">
+    </form>
+    <?php
 }
-
-/**
- * Flush rewrite rules on activation
- */
-function wc_notes_activate() {
-    wc_notes_register_post_type();
-    flush_rewrite_rules();
-}
-register_activation_hook(__FILE__, 'wc_notes_activate');
-
-/**
- * Flush rewrite rules on deactivation
- */
-function wc_notes_deactivate() {
-    flush_rewrite_rules();
-}
-register_deactivation_hook(__FILE__, 'wc_notes_deactivate');
-
