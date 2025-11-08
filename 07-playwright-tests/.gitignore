@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+playwright-report/
+playwright/.cache/
+
+# Screenshots and videos
+screenshots/
+videos/
+*.png
+*.jpg
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+

@@ -1,0 +1,28 @@
+{
+  "name": "wordcamp-notes-playwright-tests",
+  "version": "1.0.0",
+  "description": "Basic Playwright tests for WordPress Playground - WordCamp Notes plugin",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:basic": "playwright test tests/basic-plugin.spec.js",
+    "test:admin": "playwright test tests/admin-interface.spec.js",
+    "test:api": "playwright test tests/rest-api.spec.js"
+  },
+  "keywords": [
+    "playwright",
+    "wordpress",
+    "playground",
+    "testing",
+    "e2e"
+  ],
+  "author": "WordCamp Athens 2025 Workshop",
+  "license": "GPL-2.0",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}
+
